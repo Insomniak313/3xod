@@ -20,11 +20,13 @@ Plateforme conversationnelle qui déniche des activités inspirantes à partir d
 
 | Action | Commande |
 | ------ | -------- |
-| Installer les deps | `pnpm install` |
-| Lancer front | `pnpm dev:front` |
-| Lancer back | `pnpm dev:back` |
-| Lancer tous les dev servers | `pnpm dev` (via Turbo) |
-| Build complet | `pnpm build` |
+| Installer les deps | `make install` |
+| Lancer front | `make dev-front` |
+| Lancer back | `make dev-back` |
+| Lancer tous les dev servers | `make dev` (Turbo) |
+| Build complet | `make build` |
+
+> 💡 Ajoutez `USE_DOCKER=1` à n’importe quelle cible `make` pour tout exécuter dans le conteneur `toolbox` (ex. `USE_DOCKER=1 make dev`). Cela évite d’installer Node.js ou pnpm en local.
 
 ## Backend (NestJS)
 
@@ -53,7 +55,21 @@ Plateforme conversationnelle qui déniche des activités inspirantes à partir d
 
 - `apps/back/Dockerfile` : build multi-étapes Node 20 + pnpm.
 - `apps/front/Dockerfile` : build Vite, runtime nginx.
-- `infra/docker-compose.yml` lance front, back, Redis (mémoire future) et Qdrant (vector store LangChain).
+- `infra/docker-compose.yml` lance front, back, Redis (mémoire future) et Qdrant (vector store LangChain). Il expose aussi `toolbox`, un conteneur Node 20 + pnpm monté sur le dépôt qui sert d’environnement de dev.
+
+### Mode full Docker (sans Node/pnpm local)
+
+1. Construire l’image dev (une seule fois) :  
+   `docker compose -f infra/docker-compose.yml build toolbox`
+2. Installer les dépendances via Docker :  
+   `USE_DOCKER=1 make install`
+3. Lancer les serveurs front/back avec hot reload (ports 5173 et 4000 exposés) :  
+   `USE_DOCKER=1 make dev`
+4. Exécuter ponctuellement lint/tests/CLI :  
+   `docker compose -f infra/docker-compose.yml run --rm toolbox pnpm lint`
+5. Monter les services annexes (Redis + Qdrant) ou des builds prod :  
+   `docker compose -f infra/docker-compose.yml up redis vectorstore`  
+   `docker compose -f infra/docker-compose.yml up --build front back`
 
 ## Variables d’environnement
 

@@ -1,18 +1,25 @@
 .PHONY: install dev dev-front dev-back build lint test format help
 
 PNPM ?= pnpm
+PNPM_DEV ?= $(PNPM)
+DOCKER_COMPOSE ?= docker compose -f infra/docker-compose.yml
+
+ifdef USE_DOCKER
+PNPM = $(DOCKER_COMPOSE) run --rm toolbox pnpm
+PNPM_DEV = $(DOCKER_COMPOSE) run --rm --service-ports toolbox pnpm
+endif
 
 install:
 	$(PNPM) install
 
 dev:
-	$(PNPM) dev
+	$(PNPM_DEV) dev
 
 dev-front:
-	$(PNPM) dev:front
+	$(PNPM_DEV) dev:front
 
 dev-back:
-	$(PNPM) dev:back
+	$(PNPM_DEV) dev:back
 
 build:
 	$(PNPM) build
